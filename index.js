@@ -52,3 +52,8 @@ io.on('set-nickname', (id, nickname) => {
     let client = findClient(id);
     client.nickname = nickname;
 });
+
+io.on('get-nickname', (id) => {
+    let client = findclient(id);
+    client.socket.emit('your-nickname', client.nickname);
+});
