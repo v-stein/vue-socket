@@ -1,0 +1,70 @@
+[
+  {
+    "type"    : "unique",
+    "states"  : "Vue.js est ...",
+    "answers" : {
+      "A": "Une librairie JavaScript pour parser le HTML",
+      "B": "Une librairie JavaScript d'utilitaires",
+      "C": "Un framework JavaScript réactif",
+      "D": "Un framework JavaScript orienté objet"
+    },
+    "answer"  : "C"
+  },
+  {
+    "type"    : "yesno",
+    "states"  : "Vue.js est capable de gérer des projets de grande taille",
+    "answers" : {
+      "Y": "Oui",
+      "N": "Non"
+    },
+    "answer"  : "Y"
+  },
+  {
+    "type"    : "",
+    "states"  : "",
+    "answers" : "",
+    "answer"  : ""
+  },
+  {
+    "type"    : "",
+    "states"  : "",
+    "answers" : "",
+    "answer"  : ""
+  },
+  {
+    "type"    : "",
+    "states"  : "",
+    "answers" : "",
+    "answer"  : ""
+  },
+  {
+    "type"    : "",
+    "states"  : "",
+    "answers" : "",
+    "answer"  : ""
+  },
+  {
+    "type"    : "",
+    "states"  : "",
+    "answers" : "",
+    "answer"  : ""
+  },
+  {
+    "type"    : "",
+    "states"  : "",
+    "answers" : "",
+    "answer"  : ""
+  },
+  {
+    "type"    : "",
+    "states"  : "",
+    "answers" : "",
+    "answer"  : ""
+  },
+  {
+    "type"    : "",
+    "states"  : "",
+    "answers" : "",
+    "answer"  : ""
+  }
+]

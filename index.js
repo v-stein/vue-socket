@@ -11,49 +11,151 @@ const
 const io = socketIO(server);
 
 
+class Player {
+    constructor (socketId) {
+        // Intel
+        this.socketId = socketId;
+        this.nickname = '';
+        this.points = 0;
 
-let Clients = [];
+        // Logic
+        this.ready = false;
+        this.skip = false;
+    }
 
-/**
- * @property {number} id
- * @property {Socket} socket
- * @property {string} nickname
- */
-class Client {
-    constructor (socket) {
-        this.id         = Clients.length + 1;
-        this.socket     = socket;
-        this.nickname   = '';
+    setNickname (nickname) {
+        this.nickname = nickname;
+    }
+
+    getNickname () {
+        return this.nickname;
+    }
+
+    setPoints (points) {
+        this.points = points;
+    }
+
+    addPoints (points) {
+        this.points += points;
+    }
+
+    getPoints () {
+        return this.points;
+    }
+
+    resetPoints () {
+        this.points = 0;
+    }
+
+    changeReadyState () {
+        this.ready = !this.ready;
+    }
+
+    isReady () {
+        return this.ready;
+    }
+
+    wantsToSkip () {
+        this.skip = true;
+    }
+
+    resetSkip () {
+        this.skip = false;
     }
 }
 
-function findClient (id) {
-    return Clients.find(o => o.id === id)
+class Game {
+    constructor () {
+        this.mod = null;
+        this.players = [];
+        this.questions = [{foo: 'bar', baz: 'boo'}];
+
+        this.question = 0;
+    }
+
+    setMod (player) {
+        this.mod = player;
+        return player;
+    }
+
+    addPlayer (player) {
+        this.players.push(player);
+        return player;
+    }
+
+    removePlayer (playerSocketId) {
+        let idx = this.players.findIndex(p => p.socketId === playerSocketId);
+
+        this.players.splice(idx, 1);
+    }
+
+    allPlayersReady () {
+        let readyPlayers = this.players.filter(p => p.isReady());
+
+        return readyPlayers.length === this.players.length;
+    }
+
+    nextQuestion () {
+        this.question++;
+        return this.getQuestion();
+    }
+
+    getQuestion () {
+        return this.questions[this.question - 1];
+    }
+
+    resetGame () {
+        this.question = 0;
+    }
 }
 
-function generateNewClient (socket) {
-    let client = new Client(socket);
-    Clients.push(client);
-    return client.id;
+let game = new Game();
+
+
+io.on('connection', function (socket) {
+    let player = new Player(socket.id);
+    socket.emit('connected', true);     /** EVENT to Socket **/
+
+    socket.on('set-nickname', function (nickname) {     /** EVENT from Socket **/
+        if (typeof nickname === 'object') { // Mod
+            player.setNickname(nickname.name);
+            if (nickname.answer !== 42) socket.emit('not-allowed');     /** EVENT to Socket **/
+            else {
+                let mod = game.setMod(player);
+                console.log('Moderator is ' + mod.getNickname());
+
+                socket.on('start-game', function () {      /** EVENT from Socket **/
+                    let question = game.nextQuestion();
+
+                    for (let p of game.players) {
+                        io.to(p.socketId).emit('question', question); /** EVENT to Socket **/
+                    }
+                })
+            }
+        }
+        else { // Regular player
+            game.addPlayer(player);
+            player.setNickname(nickname);
+            socket.emit('nickname-set', player.getNickname());      /** EVENT to Socket **/
+
+            console.log('new player ' + player.getNickname());
+
+            socket.on('set-ready', function () {        /** EVENT from Socekt **/
+                player.changeReadyState();
+                socket.emit('ready-state', player.isReady());       /** EVENT to Socket **/
+
+                if (game.allPlayersReady()) {
+                    console.log('All players ready')
+                    io.to(game.mod.socketId).emit('players-ready');      /** EVENT to Socket **/
+                }
+            })
+        }
+    })
+});
+
+
+module.exports = {
+    g: Game,
+    p: Player,
+    io: io
 }
-
-function returnClientId (socket, id) {
-    socket.emit('your-id', id);
-}
-
-
-
-io.on('connection', socket => {
-    let id = generateNewClient(socket);
-    returnClientId(socket, id);
-});
-
-io.on('set-nickname', (id, nickname) => {
-    let client = findClient(id);
-    client.nickname = nickname;
-});
-
-io.on('get-nickname', (id) => {
-    let client = findClient(id);
-    client.socket.emit('your-nickname', client.nickname);
-});
